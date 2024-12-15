@@ -1,5 +1,6 @@
 ﻿#include "../exercise.h"
-
+#include <numeric>
+#include <cstring>
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
@@ -10,6 +11,10 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for (unsigned int i = 0; i < 4; ++i) {
+            this->shape[i] = shape_[i];
+        }
+        size = std::accumulate(shape_, shape_+4, 1, std::multiplies<int>());
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -28,6 +33,31 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        unsigned int size = std::accumulate(this->shape, this->shape+4, 1, std::multiplies<int>());
+        unsigned int size0 = std::accumulate(this->shape+1, this->shape+4, 1, std::multiplies<int>());
+        unsigned int size1 = std::accumulate(this->shape+2, this->shape+4, 1, std::multiplies<int>());
+        unsigned int size2 = std::accumulate(this->shape+3, this->shape+4, 1, std::multiplies<int>());
+        unsigned int index[4];
+        for (unsigned int i = 0; i < size; ++i) {
+            index[0] = i/size0;
+            index[1] = (i%size0)/size1;
+            index[2] = ((i%size0)%size1)/size2;
+            index[3] = ((i%size0)%size1)%size2;
+            for(unsigned int j = 0; j<4; ++j){
+                if(others.shape[j]==1){
+                    index[j]=0;
+                }
+            }
+            unsigned int data_index = 0;
+            for (unsigned int k = 0; k < 4; ++k) {
+                unsigned int temp = index[k];
+                for(unsigned int j =k+1; j<4;++j){
+                    temp *=others.shape[j];
+                }
+                data_index += temp;
+            }
+            this->data[i] += others.data[data_index];
+        }
         return *this;
     }
 };

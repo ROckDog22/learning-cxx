@@ -15,21 +15,40 @@ class DynFibonacci {
 
 public:
     // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    DynFibonacci(int capacity): cache(new size_t[capacity]), cached(2) {
+        this->cache[0]=0;
+        this->cache[1]=1;
+    }
 
     // TODO: 实现移动构造器
-    DynFibonacci(DynFibonacci &&) noexcept = delete;
+    DynFibonacci(DynFibonacci && dfi) noexcept {
+        this->cache = dfi.cache;
+        this->cached = dfi.cached;
+        dfi.cache = nullptr;
+        dfi.cached = 0;
+    };
 
     // TODO: 实现移动赋值
     // NOTICE: ⚠ 注意移动到自身问题 ⚠
-    DynFibonacci &operator=(DynFibonacci &&) noexcept = delete;
+    DynFibonacci &operator=(DynFibonacci && dfi) noexcept {
+        if (this == &dfi){
+            return *this; 
+        }
+        this->cache = dfi.cache;
+        this->cached = dfi.cached;
+        dfi.cache = nullptr;
+        dfi.cached = 0;
+        return *this;
+    };
 
     // TODO: 实现析构器，释放缓存空间
-    ~DynFibonacci();
+    ~DynFibonacci(){
+        delete[] cache;
+    };
 
     // TODO: 实现正确的缓存优化斐波那契计算
     size_t operator[](int i) {
-        for (; false; ++cached) {
+        for (; this->cached<=i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
